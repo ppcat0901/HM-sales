@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Weekly Report Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif';
+            background-color: #f5f5f4; /* Warm Neutral: Stone 100 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .kpi-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .nav-button.active {
+            background-color: #3f6212; /* Lime 800 */
+            color: #ffffff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="text-stone-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-stone-900">Store Weekly Report Dashboard</h1>
+            <p class="text-stone-500 mt-2">Week: June 09, 2025 - June 15, 2025</p>
+        </header>
+
+        <section id="kpi-section" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <!-- KPI Cards will be injected here by JavaScript -->
+        </section>
+
+        <main class="bg-white rounded-2xl shadow-lg p-4 md:p-6">
+            
+            <section id="overview-section" class="mb-8">
+                <h2 class="text-2xl font-bold mb-4 text-center">All Stores Performance Overview</h2>
+                <div class="flex justify-center mb-4">
+                    <div class="inline-flex rounded-lg shadow-sm">
+                        <button id="show-sales-btn" class="nav-button active py-2 px-4 text-sm font-medium text-stone-700 bg-white rounded-l-lg border border-stone-200 hover:bg-stone-100 focus:z-10 focus:ring-2 focus:ring-lime-700">By Sales</button>
+                        <button id="show-order-btn" class="nav-button py-2 px-4 text-sm font-medium text-stone-700 bg-white rounded-r-lg border border-stone-200 hover:bg-stone-100 focus:z-10 focus:ring-2 focus:ring-lime-700">By Order</button>
+                    </div>
+                </div>
+                <div class="chart-container mb-6">
+                    <canvas id="overviewChart"></canvas>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white divide-y divide-stone-200">
+                        <thead class="bg-stone-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Store Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Total Sales</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Total Orders</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Avg. Transaction</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Key Highlights / Issues</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-table-body" class="divide-y divide-stone-200">
+                            <!-- Summary table rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <hr class="border-stone-200 my-8">
+
+            <section id="detail-section">
+                <div id="detail-placeholder" class="text-center py-12">
+                    <h2 class="text-2xl font-bold mb-2">Store Details</h2>
+                    <p class="text-stone-500">Click a store in the chart or table above to see its detailed data.</p>
+                </div>
+                <div id="detail-content" class="hidden">
+                    <h2 id="detail-store-name" class="text-2xl font-bold mb-4 text-center"></h2>
+                    <div id="top-items-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Top items will be injected here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const reportData = {
+        summary: {
+            totalSales: 60260.29,
+            totalOrder: 5244,
+            avgTransaction: 11.49
+        },
+        stores: [
+            { name: "JV", totalSales: 2774.75, totalOrder: 422, avgTransaction: 9.77, highlights: "- closed 3 days,Ice cream mix still enough so no delivery" },
+            { name: "BP", totalSales: 10345.40, totalOrder: 801, avgTransaction: 12.92, highlights: "- no major issues this week" },
+            { name: "DTLA", totalSales: 1065, totalOrder: 103, avgTransaction: 10.34, highlights: "- closed 3 days, Ice cream mix still enough so no delivery" },
+            { name: "GARDENA", totalSales: 19965.2, totalOrder: 1574, avgTransaction: 12.68, highlights: "- Highest sales this week" },
+            { name: "IRVINE", totalSales: 14484.2, totalOrder: 1298, avgTransaction: 11.16, highlights: "- no major issues this week" },
+            { name: "WILSHIRE", totalSales: 11625.74, totalOrder: 1046, avgTransaction: 11.11, highlights: "- no major issues this week" },
+        ],
+        topItems: {
+            "JV": {
+                "Ice cream": [{name: "Honeymee", quantity: 25}, {name: "Honey Affogato", quantity: 23}, {name: "BR Sguar w/Boba", quantity: 19}],
+                "Milkshake": [{name: "Cookie & Cream", quantity: 18}, {name: "Matcha", quantity: 10}, {name: "Strawberry", quantity: 10}],
+                "Latte & Ade": [{name: "Passion Fruit", quantity: 33}, {name: "Matcha", quantity: 21}, {name: "Strawberry", quantity: 21}],
+                "Drink": [{name: "Hibiscus Tea", quantity: 1}]
+            },
+            "BP": {
+                "Ice cream": [{name: "Sweetie", quantity: 258}, {name: "Honeymee", quantity: 219}, {name: "Matcha Affogato", quantity: 108}],
+                "Milkshake": [{name: "Cookie & Cream", quantity: 73}, {name: "Misugaru", quantity: 43}, {name: "Matcha", quantity: 41}],
+                "Latte & Ade": [{name: "Matcha", quantity: 13}, {name: "Blue Curacao", quantity: 10}, {name: "Strawberry", quantity: 8}],
+            },
+            "DTLA": {
+                "Ice cream": [{name: "Honeymee", quantity: 15}, {name: "Chocolate", quantity: 11}, {name: "Honey Affogato", quantity: 56}],
+                "Milkshake": [{name: "Cookie & Cream", quantity: 7}, {name: "Coffee", quantity: 5}, {name: "Caramel/Strawberry/Blueberry", quantity: 3}],
+                "Latte & Ade": [{name: "Matcha", quantity: 4}, {name: "Passion Fruit", quantity: 4}, {name: "Green Grape", quantity: 3}],
+                "Morning Menu": [{name: "Cagel & Coffee", quantity: 6}, {name: "HC & Coffee", quantity: 5}, {name: "HC & Corissant", quantity: 3}]
+            },
+            "GARDENA": {
+                "Ice cream": [{name: "Honeymee", quantity: 208}, {name: "Sweetie", quantity: 185}, {name: "Honeymee Affogato", quantity: 130}],
+                "Milkshake": [{name: "Cookie & Cream", quantity: 108}, {name: "Matcha", quantity: 81}, {name: "Caramel", quantity: 59}],
+                "Latte & Ade": [{name: "Blue Curacao", quantity: 12}, {name: "Strawberry", quantity: 11}, {name: "Blueberry", quantity: 9}],
+                "Drinks": [{name: "BR Milk", quantity: 40}, {name: "BR Latte", quantity: 36}, {name: "BR Matcha", quantity: 32}]
+            },
+            "IRVINE": {
+                "Ice cream": [{name: "Honeymee", quantity: 273}, {name: "Sweetie", quantity: 230}, {name: "Chocolate", quantity: 155}],
+                "Cone": [{name: "Cookie & Cream", quantity: 79}, {name: "Milk", quantity: 50}, {name: "Caramel", quantity: 30}],
+                "Latte & Ade": [{name: "Matcha", quantity: 23}, {name: "Passion Fruit", quantity: 9}, {name: "Strawberry", quantity: 8}],
+                "Drinks": [{name: "CNM Honey Tea", quantity: 12}, {name: "CNM Hibiscus", quantity: 7}, {name: "Honey Matcha", quantity: 3}]
+            },
+            "WILSHIRE": {
+                "Ice cream": [{name: "Honeymee", quantity: 242}, {name: "Sweetie", quantity: 238}, {name: "Chocolate", quantity: 150}],
+                "Milkshake": [{name: "Darling", quantity: 62}, {name: "Sweetie", quantity: 8}, {name: "Honeymee", quantity: 72}],
+            }
+        }
+    };
+    
+    const kpiSection = document.getElementById('kpi-section');
+    const summaryTableBody = document.getElementById('summary-table-body');
+    const overviewCtx = document.getElementById('overviewChart').getContext('2d');
+    const showSalesBtn = document.getElementById('show-sales-btn');
+    const showOrderBtn = document.getElementById('show-order-btn');
+    
+    let overviewChart;
+    let currentMetric = 'sales';
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    }
+    
+    function createKpiCards() {
+        const kpis = [
+            { label: 'Total Sales', value: formatCurrency(reportData.summary.totalSales), color: 'bg-lime-100', textColor: 'text-lime-800' },
+            { label: 'Total Orders', value: reportData.summary.totalOrder.toLocaleString(), color: 'bg-emerald-100', textColor: 'text-emerald-800' },
+            { label: 'Avg. Transaction', value: formatCurrency(reportData.summary.avgTransaction), color: 'bg-amber-100', textColor: 'text-amber-800' }
+        ];
+
+        kpiSection.innerHTML = kpis.map(kpi => `
+            <div class="kpi-card ${kpi.color} rounded-2xl p-6 flex flex-col justify-center items-center shadow">
+                <p class="text-sm font-semibold ${kpi.textColor} mb-2">${kpi.label}</p>
+                <p class="text-3xl font-bold ${kpi.textColor}">${kpi.value}</p>
+            </div>
+        `).join('');
+    }
+
+    function populateSummaryTable() {
+        summaryTableBody.innerHTML = reportData.stores.map((store, index) => `
+            <tr class="hover:bg-stone-50 cursor-pointer" data-store-index="${index}">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-900">${store.name}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${formatCurrency(store.totalSales)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${store.totalOrder.toLocaleString()}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${formatCurrency(store.avgTransaction)}</td>
+                <td class="px-6 py-4 whitespace-normal text-sm text-stone-500">${store.highlights}</td>
+            </tr>
+        `).join('');
+
+        document.querySelectorAll('#summary-table-body tr').forEach(row => {
+            row.addEventListener('click', (e) => {
+                const storeIndex = e.currentTarget.dataset.storeIndex;
+                showStoreDetails(storeIndex);
+            });
+        });
+    }
+    
+    function createOverviewChart() {
+        if (overviewChart) {
+            overviewChart.destroy();
+        }
+
+        const data = currentMetric === 'sales' 
+            ? reportData.stores.map(s => s.totalSales) 
+            : reportData.stores.map(s => s.totalOrder);
+        
+        const label = currentMetric === 'sales' ? 'Total Sales' : 'Total Orders';
+        const backgroundColor = currentMetric === 'sales' ? 'rgba(101, 163, 13, 0.6)' : 'rgba(16, 185, 129, 0.6)';
+        const borderColor = currentMetric === 'sales' ? 'rgba(101, 163, 13, 1)' : 'rgba(16, 185, 129, 1)';
+
+        overviewChart = new Chart(overviewCtx, {
+            type: 'bar',
+            data: {
+                labels: reportData.stores.map(s => s.name),
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    borderColor: borderColor,
+                    borderWidth: 1,
+                    borderRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += currentMetric === 'sales' ? formatCurrency(context.parsed.y) : context.parsed.y.toLocaleString();
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#e7e5e4' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const storeIndex = elements[0].index;
+                        showStoreDetails(storeIndex);
+                    }
+                }
+            }
+        });
+    }
+
+    function showStoreDetails(storeIndex) {
+        const store = reportData.stores[storeIndex];
+        const topItemsData = reportData.topItems[store.name];
+
+        document.getElementById('detail-placeholder').classList.add('hidden');
+        document.getElementById('detail-content').classList.remove('hidden');
+        
+        document.getElementById('detail-store-name').textContent = `${store.name} Top Selling Items`;
+
+        const topItemsContainer = document.getElementById('top-items-container');
+        
+        if (!topItemsData) {
+            topItemsContainer.innerHTML = `<p class="text-stone-500 col-span-full text-center">No top item data available for this store.</p>`;
+            return;
+        }
+        
+        topItemsContainer.innerHTML = Object.keys(topItemsData).map(category => {
+            const items = topItemsData[category];
+            const itemsHtml = items.map(item => `
+                <li class="flex justify-between items-center py-1">
+                    <span class="truncate">${item.name}</span>
+                    <span class="text-xs font-semibold bg-lime-200 text-lime-800 px-2 py-0.5 rounded-full">${item.quantity}</span>
+                </li>
+            `).join('');
+            
+            return `
+                <div class="bg-stone-50 rounded-lg p-4 shadow-sm">
+                    <h3 class="font-bold text-stone-800 mb-2 border-b border-stone-200 pb-2">${category}</h3>
+                    <ul class="space-y-1 text-sm text-stone-600">
+                        ${itemsHtml}
+                    </ul>
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('detail-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    showSalesBtn.addEventListener('click', () => {
+        currentMetric = 'sales';
+        showSalesBtn.classList.add('active');
+        showOrderBtn.classList.remove('active');
+        createOverviewChart();
+    });
+
+    showOrderBtn.addEventListener('click', () => {
+        currentMetric = 'order';
+        showOrderBtn.classList.add('active');
+        showSalesBtn.classList.remove('active');
+        createOverviewChart();
+    });
+
+    function init() {
+        createKpiCards();
+        populateSummaryTable();
+        createOverviewChart();
+    }
+
+    init();
+});
+</script>
+
+</body>
+</html>
